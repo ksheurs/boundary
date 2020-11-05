@@ -305,7 +305,6 @@ func (c *Command) Run(args []string) int {
 	c.DevTargetSessionMaxSeconds = c.flagTargetSessionMaxSeconds
 	c.DevTargetSessionConnectionLimit = c.flagTargetSessionConnectionLimit
 	c.DevHostAddress = host
-
 	c.Config.PassthroughDirectory = c.flagPassthroughDirectory
 	c.Config.Controller.AuthTokenTtl = c.flagAuthTokenTtl
 	c.Config.Controller.AuthTokenStalenessDuration = c.flagAuthTokenStalenessDuration

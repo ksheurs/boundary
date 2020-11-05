@@ -217,12 +217,6 @@ func Parse(d string) (*Config, error) {
 		return nil, err
 	}
 
-	sharedConfig, err := configutil.ParseConfig(d)
-	if err != nil {
-		return nil, err
-	}
-	result.SharedConfig = sharedConfig
-
 	// Perform controller configuration overrides for auth token settings
 	if result.Controller != nil {
 		if result.Controller.AuthTokenTtl != "" {
@@ -241,6 +235,12 @@ func Parse(d string) (*Config, error) {
 			globals.DefaultAuthTokenStalenessDuration = t
 		}
 	}
+
+	sharedConfig, err := configutil.ParseConfig(d)
+	if err != nil {
+		return nil, err
+	}
+	result.SharedConfig = sharedConfig
 
 	return result, nil
 }
