@@ -229,9 +229,9 @@ func (b *Server) PrintInfo(ui cli.Ui) {
 	)
 
 	b.InfoKeys = append(b.InfoKeys, tokDurKey)
-	b.Info[tokDurKey] = fmt.Sprintf("%gs", globals.DefaultAuthTokenMaxDuration.Seconds())
+	b.Info[tokDurKey] = fmt.Sprintf("%s", globals.DefaultAuthTokenMaxDuration.String())
 	b.InfoKeys = append(b.InfoKeys, tokStaKey)
-	b.Info[tokStaKey] = fmt.Sprintf("%gs", globals.DefaultAuthTokenMaxStaleness.Seconds())
+	b.Info[tokStaKey] = fmt.Sprintf("%s", globals.DefaultAuthTokenMaxStaleness.String())
 
 	// Server configuration output
 	padding := 0
