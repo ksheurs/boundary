@@ -31,6 +31,8 @@ telemetry {
 controller {
 	name = "dev-controller"
 	description = "A default controller created in dev mode"
+	auth_token_max_duration = "2h"
+	auth_token_max_staleness = "1h"
 }
 
 kms "aead" {
@@ -95,10 +97,12 @@ type Config struct {
 }
 
 type Controller struct {
-	Name              string    `hcl:"name"`
-	Description       string    `hcl:"description"`
-	Database          *Database `hcl:"database"`
-	PublicClusterAddr string    `hcl:"public_cluster_addr"`
+	Name                  string    `hcl:"name"`
+	Description           string    `hcl:"description"`
+	Database              *Database `hcl:"database"`
+	PublicClusterAddr     string    `hcl:"public_cluster_addr"`
+	AuthTokenMaxDuration  string    `hcl:"auth_token_max_duration"`
+	AuthTokenMaxStaleness string    `hcl:"auth_token_max_staleness"`
 }
 
 type Worker struct {

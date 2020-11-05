@@ -5,7 +5,9 @@ import (
 	"net"
 	"runtime"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/boundary/globals"
 	"github.com/hashicorp/boundary/internal/auth/password"
 	"github.com/hashicorp/boundary/internal/cmd/base"
 	"github.com/hashicorp/boundary/internal/cmd/config"
@@ -377,6 +379,25 @@ func (c *Command) Run(args []string) int {
 	}
 	c.InfoKeys = append(c.InfoKeys, "worker public addr")
 	c.Info["worker public addr"] = c.Config.Worker.PublicAddr
+
+	// Check for auth token overrides
+	if c.Config.Controller.AuthTokenMaxDuration != "" {
+		t, err := time.ParseDuration(c.Config.Controller.AuthTokenMaxDuration)
+		if err != nil {
+			c.UI.Error("error parsing auth_token_max_duration: " + err.Error())
+			return 1
+		}
+		globals.DefaultAuthTokenMaxDuration = t
+	}
+
+	if c.Config.Controller.AuthTokenMaxStaleness != "" {
+		t, err := time.ParseDuration(c.Config.Controller.AuthTokenMaxStaleness)
+		if err != nil {
+			c.UI.Error("error parsing auth_token_max_staleness: " + err.Error())
+			return 1
+		}
+		globals.DefaultAuthTokenMaxStaleness = t
+	}
 
 	// Write out the PID to the file now that server has successfully started
 	if err := c.StorePidFile(c.Config.PidFile); err != nil {

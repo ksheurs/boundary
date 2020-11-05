@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+	"github.com/hashicorp/boundary/globals"
 	"github.com/hashicorp/boundary/internal/authtoken/store"
 	"github.com/hashicorp/boundary/internal/db"
 	"github.com/hashicorp/boundary/internal/db/timestamp"
@@ -14,11 +15,8 @@ import (
 	"github.com/hashicorp/boundary/internal/kms"
 )
 
-// TODO (ICU-406): Make these fields configurable.
 var (
 	lastAccessedUpdateDuration = 10 * time.Minute
-	maxStaleness               = 24 * time.Hour
-	maxTokenDuration           = 7 * 24 * time.Hour
 	timeSkew                   = time.Duration(0)
 )
 
@@ -91,10 +89,9 @@ func (r *Repository) CreateAuthToken(ctx context.Context, withIamUser *iam.User,
 		return nil, fmt.Errorf("create: unable to get database wrapper: %w", err)
 	}
 
-	// TODO: Allow the caller to specify something different than the default duration.
 	// We truncate the expiration time to the nearest second to make testing in different platforms with
 	// different time resolutions easier.
-	expiration, err := ptypes.TimestampProto(time.Now().Add(maxTokenDuration).Truncate(time.Second))
+	expiration, err := ptypes.TimestampProto(time.Now().Add(globals.DefaultAuthTokenMaxDuration).Truncate(time.Second))
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +208,7 @@ func (r *Repository) ValidateToken(ctx context.Context, id, token string, opt ..
 	sinceLastAccessed := now.Sub(lastAccessed) + timeSkew
 	// TODO (jimlambrt 9/2020) - investigate the need for the timeSkew and see
 	// if it can be eliminated.
-	if now.After(exp.Add(-timeSkew)) || sinceLastAccessed >= maxStaleness {
+	if now.After(exp.Add(-timeSkew)) || sinceLastAccessed >= globals.DefaultAuthTokenMaxStaleness {
 		// If the token has expired or has become too stale, delete it from the DB.
 		_, err = r.writer.DoTx(
 			ctx,
