@@ -64,8 +64,10 @@ func TestDevController(t *testing.T) {
 			},
 		},
 		Controller: &Controller{
-			Name:        "dev-controller",
-			Description: "A default controller created in dev mode",
+			Name:                  "dev-controller",
+			Description:           "A default controller created in dev mode",
+			AuthTokenMaxDuration:  "2h",
+			AuthTokenMaxStaleness: "1h",
 		},
 		DevController: true,
 	}
@@ -78,6 +80,8 @@ func TestDevController(t *testing.T) {
 	exp.DevControllerKey = actual.Seals[0].Config["key"]
 	exp.DevWorkerAuthKey = actual.Seals[1].Config["key"]
 	exp.DevRecoveryKey = actual.Seals[2].Config["key"]
+	exp.Controller.AuthTokenMaxDuration = actual.Controller.AuthTokenMaxDuration
+	exp.Controller.AuthTokenMaxStaleness = actual.Controller.AuthTokenMaxStaleness
 
 	assert.Equal(t, exp, actual)
 }
