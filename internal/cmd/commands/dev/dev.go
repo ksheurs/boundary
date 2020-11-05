@@ -5,9 +5,7 @@ import (
 	"net"
 	"runtime"
 	"strings"
-	"time"
 
-	"github.com/hashicorp/boundary/globals"
 	"github.com/hashicorp/boundary/internal/auth/password"
 	"github.com/hashicorp/boundary/internal/cmd/base"
 	"github.com/hashicorp/boundary/internal/cmd/config"
@@ -57,6 +55,8 @@ type Command struct {
 	flagRecoveryKey                  string
 	flagDatabaseUrl                  string
 	flagDisableDatabaseDestruction   bool
+	flagAuthTokenTtl                 string
+	flagAuthTokenStalenessDuration   string
 }
 
 func (c *Command) Synopsis() string {
@@ -219,6 +219,18 @@ func (c *Command) Flags() *base.FlagSets {
 		Usage:  `If set, specifies the URL used to connect to the database for initialization (otherwise a Docker container will be started). This can refer to a file on disk (file://) from which a URL will be read; an env var (env://) from which the URL will be read; or a direct database URL.`,
 	})
 
+	f.StringVar(&base.StringVar{
+		Name:   "auth-token-ttl",
+		Target: &c.flagAuthTokenTtl,
+		Usage:  `Auth token time-to-live (TTL).`,
+	})
+
+	f.StringVar(&base.StringVar{
+		Name:   "auth-token-staleness-duration",
+		Target: &c.flagAuthTokenStalenessDuration,
+		Usage:  `Auth token time to staleness duration.`,
+	})
+
 	return set
 }
 
@@ -295,6 +307,8 @@ func (c *Command) Run(args []string) int {
 	c.DevHostAddress = host
 
 	c.Config.PassthroughDirectory = c.flagPassthroughDirectory
+	c.Config.Controller.AuthTokenTtl = c.flagAuthTokenTtl
+	c.Config.Controller.AuthTokenStalenessDuration = c.flagAuthTokenStalenessDuration
 
 	for _, l := range c.Config.Listeners {
 		if len(l.Purpose) != 1 {
@@ -379,25 +393,6 @@ func (c *Command) Run(args []string) int {
 	}
 	c.InfoKeys = append(c.InfoKeys, "worker public addr")
 	c.Info["worker public addr"] = c.Config.Worker.PublicAddr
-
-	// Check for auth token overrides
-	if c.Config.Controller.AuthTokenMaxDuration != "" {
-		t, err := time.ParseDuration(c.Config.Controller.AuthTokenMaxDuration)
-		if err != nil {
-			c.UI.Error("error parsing auth_token_max_duration: " + err.Error())
-			return 1
-		}
-		globals.DefaultAuthTokenMaxDuration = t
-	}
-
-	if c.Config.Controller.AuthTokenMaxStaleness != "" {
-		t, err := time.ParseDuration(c.Config.Controller.AuthTokenMaxStaleness)
-		if err != nil {
-			c.UI.Error("error parsing auth_token_max_staleness: " + err.Error())
-			return 1
-		}
-		globals.DefaultAuthTokenMaxStaleness = t
-	}
 
 	// Write out the PID to the file now that server has successfully started
 	if err := c.StorePidFile(c.Config.PidFile); err != nil {

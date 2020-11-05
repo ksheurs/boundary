@@ -91,7 +91,7 @@ func (r *Repository) CreateAuthToken(ctx context.Context, withIamUser *iam.User,
 
 	// We truncate the expiration time to the nearest second to make testing in different platforms with
 	// different time resolutions easier.
-	expiration, err := ptypes.TimestampProto(time.Now().Add(globals.DefaultAuthTokenMaxDuration).Truncate(time.Second))
+	expiration, err := ptypes.TimestampProto(time.Now().Add(globals.DefaultAuthTokenTtl).Truncate(time.Second))
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func (r *Repository) ValidateToken(ctx context.Context, id, token string, opt ..
 	sinceLastAccessed := now.Sub(lastAccessed) + timeSkew
 	// TODO (jimlambrt 9/2020) - investigate the need for the timeSkew and see
 	// if it can be eliminated.
-	if now.After(exp.Add(-timeSkew)) || sinceLastAccessed >= globals.DefaultAuthTokenMaxStaleness {
+	if now.After(exp.Add(-timeSkew)) || sinceLastAccessed >= globals.DefaultAuthTokenStalenessDuration {
 		// If the token has expired or has become too stale, delete it from the DB.
 		_, err = r.writer.DoTx(
 			ctx,

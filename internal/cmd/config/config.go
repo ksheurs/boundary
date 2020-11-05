@@ -11,7 +11,9 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/boundary/globals"
 	wrapping "github.com/hashicorp/go-kms-wrapping"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/shared-secure-libs/configutil"
@@ -97,12 +99,12 @@ type Config struct {
 }
 
 type Controller struct {
-	Name                  string    `hcl:"name"`
-	Description           string    `hcl:"description"`
-	Database              *Database `hcl:"database"`
-	PublicClusterAddr     string    `hcl:"public_cluster_addr"`
-	AuthTokenMaxDuration  string    `hcl:"auth_token_max_duration"`
-	AuthTokenMaxStaleness string    `hcl:"auth_token_max_staleness"`
+	Name                       string    `hcl:"name"`
+	Description                string    `hcl:"description"`
+	Database                   *Database `hcl:"database"`
+	PublicClusterAddr          string    `hcl:"public_cluster_addr"`
+	AuthTokenTtl               string    `hcl:"auth_token_ttl"`
+	AuthTokenStalenessDuration string    `hcl:"auth_token_staleness_duration"`
 }
 
 type Worker struct {
@@ -220,6 +222,25 @@ func Parse(d string) (*Config, error) {
 		return nil, err
 	}
 	result.SharedConfig = sharedConfig
+
+	// Perform controller configuration overrides for auth token settings
+	if result.Controller != nil {
+		if result.Controller.AuthTokenTtl != "" {
+			t, err := time.ParseDuration(result.Controller.AuthTokenTtl)
+			if err != nil {
+				return result, err
+			}
+			globals.DefaultAuthTokenTtl = t
+		}
+
+		if result.Controller.AuthTokenStalenessDuration != "" {
+			t, err := time.ParseDuration(result.Controller.AuthTokenStalenessDuration)
+			if err != nil {
+				return result, err
+			}
+			globals.DefaultAuthTokenStalenessDuration = t
+		}
+	}
 
 	return result, nil
 }

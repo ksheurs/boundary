@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/boundary/globals"
 	"github.com/hashicorp/boundary/internal/cmd/base"
@@ -158,27 +157,6 @@ func (c *Command) Run(args []string) int {
 
 	if c.Config.DefaultMaxRequestDuration != 0 {
 		globals.DefaultMaxRequestDuration = c.Config.DefaultMaxRequestDuration
-	}
-
-	// Perform controller configuration overrides for auth token settings
-	if c.Config.Controller != nil {
-		if c.Config.Controller.AuthTokenMaxDuration != "" {
-			t, err := time.ParseDuration(c.Config.Controller.AuthTokenMaxDuration)
-			if err != nil {
-				c.UI.Error("error parsing auth_token_max_duration: " + err.Error())
-				return 1
-			}
-			globals.DefaultAuthTokenMaxDuration = t
-		}
-
-		if c.Config.Controller.AuthTokenMaxStaleness != "" {
-			t, err := time.ParseDuration(c.Config.Controller.AuthTokenMaxStaleness)
-			if err != nil {
-				c.UI.Error("error parsing auth_token_max_staleness: " + err.Error())
-				return 1
-			}
-			globals.DefaultAuthTokenMaxStaleness = t
-		}
 	}
 
 	// If mlockall(2) isn't supported, show a warning. We disable this in dev
