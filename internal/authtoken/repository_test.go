@@ -48,10 +48,12 @@ func TestRepository_New(t *testing.T) {
 				kms: kmsCache,
 			},
 			want: &Repository{
-				reader:       rw,
-				writer:       rw,
-				kms:          kmsCache,
-				defaultLimit: db.DefaultLimit,
+				reader:              rw,
+				writer:              rw,
+				kms:                 kmsCache,
+				defaultLimit:        db.DefaultLimit,
+				timeToLiveDuration:  7 * 24 * time.Hour,
+				timeToStaleDuration: 24 * time.Hour,
 			},
 		},
 		{
@@ -63,10 +65,12 @@ func TestRepository_New(t *testing.T) {
 				opts: []Option{WithLimit(5)},
 			},
 			want: &Repository{
-				reader:       rw,
-				writer:       rw,
-				kms:          kmsCache,
-				defaultLimit: 5,
+				reader:              rw,
+				writer:              rw,
+				kms:                 kmsCache,
+				defaultLimit:        5,
+				timeToLiveDuration:  7 * 24 * time.Hour,
+				timeToStaleDuration: 24 * time.Hour,
 			},
 		},
 		{
