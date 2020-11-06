@@ -431,8 +431,7 @@ func TestRepository_ValidateToken_expired(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, iamUser)
 
-	defaultStaleTime := maxStaleness
-	defaultExpireDuration := maxTokenDuration
+	opts := getDefaultOptions()
 
 	var tests = []struct {
 		name               string
@@ -442,19 +441,19 @@ func TestRepository_ValidateToken_expired(t *testing.T) {
 	}{
 		{
 			name:               "not-stale-or-expired",
-			staleDuration:      maxStaleness,
-			expirationDuration: maxTokenDuration,
+			staleDuration:      opts.withTokenTimeToStaleDuration,
+			expirationDuration: opts.withTokenTimeToLiveDuration,
 			wantReturned:       true,
 		},
 		{
 			name:               "stale",
 			staleDuration:      0,
-			expirationDuration: maxTokenDuration,
+			expirationDuration: opts.withTokenTimeToLiveDuration,
 			wantReturned:       false,
 		},
 		{
 			name:               "expired",
-			staleDuration:      maxStaleness,
+			staleDuration:      opts.withTokenTimeToStaleDuration,
 			expirationDuration: 0,
 			wantReturned:       false,
 		},
@@ -464,12 +463,12 @@ func TestRepository_ValidateToken_expired(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			assert, require := assert.New(t), require.New(t)
 
-			maxStaleness = tt.staleDuration
-			maxTokenDuration = tt.expirationDuration
 			timeSkew = 20 * time.Millisecond
 
 			ctx := context.Background()
-			at, err := repo.CreateAuthToken(ctx, iamUser, baseAT.GetAuthAccountId())
+			at, err := repo.CreateAuthToken(ctx, iamUser, baseAT.GetAuthAccountId(),
+				WithTokenTimeToLiveDuration(tt.expirationDuration),
+				WithTokenTimeToStaleDuration(tt.staleDuration))
 			require.NoError(err)
 
 			got, err := repo.ValidateToken(ctx, at.GetPublicId(), at.GetToken())
@@ -482,10 +481,6 @@ func TestRepository_ValidateToken_expired(t *testing.T) {
 				assert.Error(db.TestVerifyOplog(t, rw, at.GetPublicId(), db.WithOperation(oplog.OpType_OP_TYPE_DELETE)))
 				assert.Nil(got)
 			}
-
-			// reset the system default params
-			maxStaleness = defaultStaleTime
-			maxTokenDuration = defaultExpireDuration
 		})
 	}
 }
