@@ -36,11 +36,13 @@ type Command struct {
 
 	configWrapper wrapping.Wrapper
 
-	flagConfig      string
-	flagConfigKms   string
-	flagLogLevel    string
-	flagLogFormat   string
-	flagCombineLogs bool
+	flagConfig               string
+	flagConfigKms            string
+	flagLogLevel             string
+	flagLogFormat            string
+	flagCombineLogs          bool
+	flagAuthTokenTimeToLive  string
+	flagAuthTokenTimeToStale string
 }
 
 func (c *Command) Synopsis() string {
@@ -100,6 +102,24 @@ func (c *Command) Flags() *base.FlagSets {
 		Target:     &c.flagLogFormat,
 		Completion: complete.PredictSet("standard", "json"),
 		Usage:      `Log format. Supported values are "standard" and "json".`,
+	})
+
+	f.StringVar(&base.StringVar{
+		Name:       "auth-token-time-to-live",
+		Target:     &c.flagAuthTokenTimeToLive,
+		EnvVar:     "BOUNDARY_AUTH_TOKEN_TIME_TO_LIVE",
+		Default:    "168h",
+		Completion: complete.PredictSet("standard", "json"),
+		Usage:      `Auth token time to live. Example: "4h"`,
+	})
+
+	f.StringVar(&base.StringVar{
+		Name:       "auth-token-time-to-stale",
+		Target:     &c.flagAuthTokenTimeToStale,
+		EnvVar:     "BOUNDARY_AUTH_TOKEN_TIME_TO_STALE",
+		Default:    "24h",
+		Completion: complete.PredictSet("standard", "json"),
+		Usage:      `Auth token time to stale. Example: "4h"`,
 	})
 
 	return set
