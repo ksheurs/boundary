@@ -52,8 +52,8 @@ func TestRepository_New(t *testing.T) {
 				writer:              rw,
 				kms:                 kmsCache,
 				defaultLimit:        db.DefaultLimit,
-				timeToLiveDuration:  7 * 24 * time.Hour,
-				timeToStaleDuration: 24 * time.Hour,
+				timeToLiveDuration:  defaultTokenTimeToLiveDuration,
+				timeToStaleDuration: defaultTokenTimeToStaleDuration,
 			},
 		},
 		{
@@ -69,8 +69,8 @@ func TestRepository_New(t *testing.T) {
 				writer:              rw,
 				kms:                 kmsCache,
 				defaultLimit:        5,
-				timeToLiveDuration:  7 * 24 * time.Hour,
-				timeToStaleDuration: 24 * time.Hour,
+				timeToLiveDuration:  defaultTokenTimeToLiveDuration,
+				timeToStaleDuration: defaultTokenTimeToStaleDuration,
 			},
 		},
 		{
@@ -421,9 +421,6 @@ func TestRepository_ValidateToken_expired(t *testing.T) {
 	wrapper := db.TestWrapper(t)
 	kms := kms.TestKms(t, conn, wrapper)
 	iamRepo := iam.TestRepo(t, conn, wrapper)
-	repo, err := NewRepository(rw, rw, kms)
-	require.NoError(t, err)
-	require.NotNil(t, repo)
 
 	org, _ := iam.TestScopes(t, iamRepo)
 	baseAT := TestAuthToken(t, conn, kms, org.GetPublicId())
@@ -435,8 +432,6 @@ func TestRepository_ValidateToken_expired(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, iamUser)
 
-	opts := getDefaultOptions()
-
 	var tests = []struct {
 		name               string
 		staleDuration      time.Duration
@@ -445,20 +440,20 @@ func TestRepository_ValidateToken_expired(t *testing.T) {
 	}{
 		{
 			name:               "not-stale-or-expired",
-			staleDuration:      opts.withTokenTimeToStaleDuration,
-			expirationDuration: opts.withTokenTimeToLiveDuration,
+			staleDuration:      defaultTokenTimeToStaleDuration,
+			expirationDuration: defaultTokenTimeToLiveDuration,
 			wantReturned:       true,
 		},
 		{
 			name:               "stale",
-			staleDuration:      0,
-			expirationDuration: opts.withTokenTimeToLiveDuration,
+			staleDuration:      1 * time.Millisecond,
+			expirationDuration: defaultTokenTimeToLiveDuration,
 			wantReturned:       false,
 		},
 		{
 			name:               "expired",
-			staleDuration:      opts.withTokenTimeToStaleDuration,
-			expirationDuration: 0,
+			staleDuration:      defaultTokenTimeToStaleDuration,
+			expirationDuration: 1 * time.Millisecond,
 			wantReturned:       false,
 		},
 	}
@@ -469,10 +464,14 @@ func TestRepository_ValidateToken_expired(t *testing.T) {
 
 			timeSkew = 20 * time.Millisecond
 
-			ctx := context.Background()
-			at, err := repo.CreateAuthToken(ctx, iamUser, baseAT.GetAuthAccountId(),
+			repo, err := NewRepository(rw, rw, kms,
 				WithTokenTimeToLiveDuration(tt.expirationDuration),
 				WithTokenTimeToStaleDuration(tt.staleDuration))
+			require.NoError(err)
+			require.NotNil(repo)
+
+			ctx := context.Background()
+			at, err := repo.CreateAuthToken(ctx, iamUser, baseAT.GetAuthAccountId())
 			require.NoError(err)
 
 			got, err := repo.ValidateToken(ctx, at.GetPublicId(), at.GetToken())

@@ -24,8 +24,8 @@ type options struct {
 
 func getDefaultOptions() options {
 	return options{
-		withTokenTimeToLiveDuration:  7 * 24 * time.Hour,
-		withTokenTimeToStaleDuration: 24 * time.Hour,
+		withTokenTimeToLiveDuration:  defaultTokenTimeToLiveDuration,
+		withTokenTimeToStaleDuration: defaultTokenTimeToStaleDuration,
 	}
 }
 
@@ -40,18 +40,14 @@ func withTokenValue() Option {
 // WithTokenTimeToLiveDuration allows setting the auth token time-to-live.
 func WithTokenTimeToLiveDuration(ttl time.Duration) Option {
 	return func(o *options) {
-		if ttl != 0 {
-			o.withTokenTimeToLiveDuration = ttl
-		}
+		o.withTokenTimeToLiveDuration = ttl
 	}
 }
 
 // WithTokenTimeToStaleDuration allows setting the auth token staleness duration.
 func WithTokenTimeToStaleDuration(dur time.Duration) Option {
 	return func(o *options) {
-		if dur != 0 {
-			o.withTokenTimeToStaleDuration = dur
-		}
+		o.withTokenTimeToStaleDuration = dur
 	}
 }
 
