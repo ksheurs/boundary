@@ -55,8 +55,8 @@ type Command struct {
 	flagRecoveryKey                  string
 	flagDatabaseUrl                  string
 	flagDisableDatabaseDestruction   bool
-	flagAuthTokenTtl                 string
-	flagAuthTokenStalenessDuration   string
+	flagAuthTokenTimeToLive          string
+	flagAuthTokenTimeToStale         string
 }
 
 func (c *Command) Synopsis() string {
@@ -221,13 +221,13 @@ func (c *Command) Flags() *base.FlagSets {
 
 	f.StringVar(&base.StringVar{
 		Name:   "auth-token-ttl",
-		Target: &c.flagAuthTokenTtl,
+		Target: &c.flagAuthTokenTimeToLive,
 		Usage:  `Auth token time-to-live (TTL).`,
 	})
 
 	f.StringVar(&base.StringVar{
 		Name:   "auth-token-staleness-duration",
-		Target: &c.flagAuthTokenStalenessDuration,
+		Target: &c.flagAuthTokenTimeToStale,
 		Usage:  `Auth token time to staleness duration.`,
 	})
 
@@ -306,8 +306,8 @@ func (c *Command) Run(args []string) int {
 	c.DevTargetSessionConnectionLimit = c.flagTargetSessionConnectionLimit
 	c.DevHostAddress = host
 	c.Config.PassthroughDirectory = c.flagPassthroughDirectory
-	c.Config.Controller.AuthTokenTtl = c.flagAuthTokenTtl
-	c.Config.Controller.AuthTokenStalenessDuration = c.flagAuthTokenStalenessDuration
+	c.Config.Controller.AuthTokenTimeToLive = c.flagAuthTokenTimeToLive
+	c.Config.Controller.AuthTokenTimeToStale = c.flagAuthTokenTimeToStale
 
 	for _, l := range c.Config.Listeners {
 		if len(l.Purpose) != 1 {

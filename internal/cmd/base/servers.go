@@ -223,16 +223,6 @@ func (b *Server) PrintInfo(ui cli.Ui) {
 		b.Info["cgo"] = "enabled"
 	}
 
-	var (
-		tokDurKey = "auth token max duration"
-		tokStaKey = "auth token max staleness"
-	)
-
-	b.InfoKeys = append(b.InfoKeys, tokDurKey)
-	b.Info[tokDurKey] = fmt.Sprintf("%s", globals.DefaultAuthTokenTtl.String())
-	b.InfoKeys = append(b.InfoKeys, tokStaKey)
-	b.Info[tokStaKey] = fmt.Sprintf("%s", globals.DefaultAuthTokenStalenessDuration.String())
-
 	// Server configuration output
 	padding := 0
 	for _, k := range b.InfoKeys {

@@ -16,16 +16,16 @@ type Option func(*options)
 
 // options = how options are represented
 type options struct {
-	withTokenValue             bool
-	withTokenTtl               time.Duration
-	withTokenStalenessDuration time.Duration
-	withLimit                  int
+	withTokenValue               bool
+	withTokenTimeToLiveDuration  time.Duration
+	withTokenTimeToStaleDuration time.Duration
+	withLimit                    int
 }
 
 func getDefaultOptions() options {
 	return options{
-		withTokenTtl:               7 * 24 * time.Hour,
-		withTokenStalenessDuration: 24 * time.Hour,
+		withTokenTimeToLiveDuration:  7 * 24 * time.Hour,
+		withTokenTimeToStaleDuration: 24 * time.Hour,
 	}
 }
 
@@ -37,17 +37,17 @@ func withTokenValue() Option {
 	}
 }
 
-// withTokenTtl allows setting the auth token time-to-live.
-func withTokenTtl(ttl time.Duration) Option {
+// WithTokenTimeToLiveDuration allows setting the auth token time-to-live.
+func WithTokenTimeToLiveDuration(ttl time.Duration) Option {
 	return func(o *options) {
-		o.withTokenTtl = ttl
+		o.withTokenTimeToLiveDuration = ttl
 	}
 }
 
-// withTokenStalenessDuration allows setting the auth token staleness duration.
-func withTokenStalenessDuration(dur time.Duration) Option {
+// WithTokenTimeToStaleDuration allows setting the auth token staleness duration.
+func WithTokenTimeToStaleDuration(dur time.Duration) Option {
 	return func(o *options) {
-		o.withTokenStalenessDuration = dur
+		o.withTokenTimeToStaleDuration = dur
 	}
 }
 

@@ -28,8 +28,8 @@ type Repository struct {
 	// defaultLimit provides a default for limiting the number of results returned from the repo
 	defaultLimit int
 
-	tokenTtl               time.Duration
-	tokenStalenessDuration time.Duration
+	timeToLiveDuration  time.Duration
+	timeToStaleDuration time.Duration
 }
 
 // NewRepository creates a new Repository. The returned repository is not safe for concurrent go
@@ -50,12 +50,12 @@ func NewRepository(r db.Reader, w db.Writer, kms *kms.Kms, opt ...Option) (*Repo
 		opts.withLimit = db.DefaultLimit
 	}
 	return &Repository{
-		reader:                 r,
-		writer:                 w,
-		kms:                    kms,
-		defaultLimit:           opts.withLimit,
-		tokenTtl:               opts.withTokenTtl,
-		tokenStalenessDuration: opts.withTokenStalenessDuration,
+		reader:              r,
+		writer:              w,
+		kms:                 kms,
+		defaultLimit:        opts.withLimit,
+		timeToLiveDuration:  opts.withTokenTimeToLiveDuration,
+		timeToStaleDuration: opts.withTokenTimeToStaleDuration,
 	}, nil
 }
 
@@ -95,7 +95,7 @@ func (r *Repository) CreateAuthToken(ctx context.Context, withIamUser *iam.User,
 
 	// We truncate the expiration time to the nearest second to make testing in different platforms with
 	// different time resolutions easier.
-	expiration, err := ptypes.TimestampProto(time.Now().Add(r.tokenTtl).Truncate(time.Second))
+	expiration, err := ptypes.TimestampProto(time.Now().Add(r.timeToLiveDuration).Truncate(time.Second))
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func (r *Repository) ValidateToken(ctx context.Context, id, token string, opt ..
 	sinceLastAccessed := now.Sub(lastAccessed) + timeSkew
 	// TODO (jimlambrt 9/2020) - investigate the need for the timeSkew and see
 	// if it can be eliminated.
-	if now.After(exp.Add(-timeSkew)) || sinceLastAccessed >= r.tokenStalenessDuration {
+	if now.After(exp.Add(-timeSkew)) || sinceLastAccessed >= r.timeToStaleDuration {
 		// If the token has expired or has become too stale, delete it from the DB.
 		_, err = r.writer.DoTx(
 			ctx,
