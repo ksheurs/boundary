@@ -15,10 +15,8 @@ import (
 )
 
 var (
-	defaultTokenTimeToLiveDuration  = 7 * 24 * time.Hour
-	defaultTokenTimeToStaleDuration = 24 * time.Hour
-	lastAccessedUpdateDuration      = 10 * time.Minute
-	timeSkew                        = time.Duration(0)
+	lastAccessedUpdateDuration = 10 * time.Minute
+	timeSkew                   = time.Duration(0)
 )
 
 // A Repository stores and retrieves the persistent types in the authtoken
