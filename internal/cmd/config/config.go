@@ -32,8 +32,6 @@ telemetry {
 controller {
 	name = "dev-controller"
 	description = "A default controller created in dev mode"
-	auth_token_max_duration = "2h"
-	auth_token_max_staleness = "1h"
 }
 
 kms "aead" {
