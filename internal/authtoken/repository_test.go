@@ -21,6 +21,11 @@ import (
 	"github.com/hashicorp/boundary/internal/iam"
 )
 
+var (
+	defaultTokenTimeToLiveDuration  = 7 * 24 * time.Hour
+	defaultTokenTimeToStaleDuration = 7 * time.Hour
+)
+
 func TestRepository_New(t *testing.T) {
 	conn, _ := db.TestSetup(t, "postgres")
 	rw := db.New(conn)
