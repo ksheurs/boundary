@@ -5,7 +5,6 @@ import (
 	"net"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/boundary/internal/auth/password"
 	"github.com/hashicorp/boundary/internal/cmd/base"
@@ -56,8 +55,6 @@ type Command struct {
 	flagRecoveryKey                  string
 	flagDatabaseUrl                  string
 	flagDisableDatabaseDestruction   bool
-	flagAuthTokenTimeToLive          string
-	flagAuthTokenTimeToStale         string
 }
 
 func (c *Command) Synopsis() string {
@@ -220,18 +217,6 @@ func (c *Command) Flags() *base.FlagSets {
 		Usage:  `If set, specifies the URL used to connect to the database for initialization (otherwise a Docker container will be started). This can refer to a file on disk (file://) from which a URL will be read; an env var (env://) from which the URL will be read; or a direct database URL.`,
 	})
 
-	f.StringVar(&base.StringVar{
-		Name:   "auth-token-time-to-live",
-		Target: &c.flagAuthTokenTimeToLive,
-		Usage:  `Auth token time-to-live (TTL).`,
-	})
-
-	f.StringVar(&base.StringVar{
-		Name:   "auth-token-time-to-stale",
-		Target: &c.flagAuthTokenTimeToStale,
-		Usage:  `Auth token time to staleness duration.`,
-	})
-
 	return set
 }
 
@@ -306,25 +291,8 @@ func (c *Command) Run(args []string) int {
 	c.DevTargetSessionMaxSeconds = c.flagTargetSessionMaxSeconds
 	c.DevTargetSessionConnectionLimit = c.flagTargetSessionConnectionLimit
 	c.DevHostAddress = host
+
 	c.Config.PassthroughDirectory = c.flagPassthroughDirectory
-
-	if c.flagAuthTokenTimeToLive != "" {
-		t, err := time.ParseDuration(c.flagAuthTokenTimeToLive)
-		if err != nil {
-			c.UI.Error("error parsing auth token ttl: " + err.Error())
-			return 1
-		}
-		c.Config.Controller.AuthTokenTimeToLiveDuration = t
-	}
-
-	if c.flagAuthTokenTimeToStale != "" {
-		t, err := time.ParseDuration(c.flagAuthTokenTimeToStale)
-		if err != nil {
-			c.UI.Error("error parsing auth token time to stale: " + err.Error())
-			return 1
-		}
-		c.Config.Controller.AuthTokenTimeToStaleDuration = t
-	}
 
 	for _, l := range c.Config.Listeners {
 		if len(l.Purpose) != 1 {

@@ -23,10 +23,7 @@ type options struct {
 }
 
 func getDefaultOptions() options {
-	return options{
-		withTokenTimeToLiveDuration:  defaultTokenTimeToLiveDuration,
-		withTokenTimeToStaleDuration: defaultTokenTimeToStaleDuration,
-	}
+	return options{}
 }
 
 // withTokenValue allows the auth token value to be included in the lookup response.

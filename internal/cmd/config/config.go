@@ -189,6 +189,10 @@ func DevCombined() (*Config, error) {
 func New() *Config {
 	return &Config{
 		SharedConfig: new(configutil.SharedConfig),
+		Controller: &Controller{
+			AuthTokenTimeToLive:  "168h",
+			AuthTokenTimeToStale: "24h",
+		},
 	}
 }
 
